@@ -23,7 +23,12 @@ def get_printer(settings: Settings | None = None) -> Escpos:
                 "Backend 'usb' requiere PEAJE_PRINTER_USB_VENDOR_ID y "
                 "PEAJE_PRINTER_USB_PRODUCT_ID."
             )
-        return Usb(settings.printer_usb_vendor_id, settings.printer_usb_product_id)
+        return Usb(
+            settings.printer_usb_vendor_id,
+            settings.printer_usb_product_id,
+            in_ep=settings.printer_usb_in_ep,
+            out_ep=settings.printer_usb_out_ep,
+        )
 
     if settings.printer_backend == "serial":
         return Serial(

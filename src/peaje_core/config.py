@@ -16,9 +16,15 @@ class Settings(BaseSettings):
     printer_host: str = "127.0.0.1"
     printer_port: int = 9100
 
-    # backend "usb": Aclas PP7 conectada por cable a la Raspberry Pi.
+    # backend "usb": Aclas PP7 conectada por cable a la Raspberry Pi (o, en
+    # desarrollo, directo a la Mac). Los endpoints in/out por defecto son los
+    # que expone la Aclas PP7 (confirmados con pyusb: interfaz Printer, bulk
+    # OUT 0x03 / bulk IN 0x81) — python-escpos por defecto asume 0x81/0x01,
+    # que no corresponde con este dispositivo.
     printer_usb_vendor_id: int | None = None
     printer_usb_product_id: int | None = None
+    printer_usb_in_ep: int = 0x81
+    printer_usb_out_ep: int = 0x03
 
     # backend "serial": conexión serie directa.
     printer_serial_devfile: str = "/dev/serial0"

@@ -36,6 +36,8 @@ Configurable por variables de entorno con prefijo `PEAJE_` (ver
 | `PEAJE_PRINTER_PORT` | `9100` | Backend `network`: puerto |
 | `PEAJE_PRINTER_USB_VENDOR_ID` | — | Backend `usb`: vendor ID (ver `GET /printer/connected`) |
 | `PEAJE_PRINTER_USB_PRODUCT_ID` | — | Backend `usb`: product ID |
+| `PEAJE_PRINTER_USB_IN_EP` | `0x81` | Backend `usb`: endpoint bulk IN (default calibrado para la Aclas PP7) |
+| `PEAJE_PRINTER_USB_OUT_EP` | `0x03` | Backend `usb`: endpoint bulk OUT (default calibrado para la Aclas PP7) |
 | `PEAJE_PRINTER_SERIAL_DEVFILE` | `/dev/serial0` | Backend `serial` |
 | `PEAJE_PRINTER_SERIAL_BAUDRATE` | `19200` | Backend `serial` |
 
