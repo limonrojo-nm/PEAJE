@@ -6,9 +6,68 @@
 </head>
 <body>
   <h1>Peaje</h1>
-  <button id="test-print">Prueba de impresión</button>
-  <p id="result"></p>
+
+  <section>
+    <h2>Impresoras USB conectadas</h2>
+    <button id="refresh-printers">Actualizar listado</button>
+    <table id="printers-table" border="1" cellpadding="4">
+      <thead>
+        <tr>
+          <th>Vendor ID</th>
+          <th>Product ID</th>
+          <th>Fabricante</th>
+          <th>Producto</th>
+        </tr>
+      </thead>
+      <tbody id="printers-body"></tbody>
+    </table>
+    <p id="printers-status"></p>
+  </section>
+
+  <section>
+    <h2>Prueba de impresión</h2>
+    <button id="test-print">Prueba de impresión</button>
+    <p id="result"></p>
+  </section>
+
   <script>
+    const printersBody = document.getElementById("printers-body");
+    const printersStatus = document.getElementById("printers-status");
+
+    async function loadConnectedPrinters() {
+      printersStatus.textContent = "Buscando impresoras...";
+      printersBody.innerHTML = "";
+      try {
+        const response = await fetch("/printer/connected");
+        const data = await response.json();
+        if (!response.ok) {
+          printersStatus.textContent = `Error: ${data.detail}`;
+          return;
+        }
+        const printers = data.usb_printers;
+        if (printers.length === 0) {
+          printersStatus.textContent = "No se detectaron impresoras USB conectadas.";
+          return;
+        }
+        printersStatus.textContent = "";
+        for (const printer of printers) {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${printer.vendor_id}</td>
+            <td>${printer.product_id}</td>
+            <td>${printer.manufacturer ?? ""}</td>
+            <td>${printer.product ?? ""}</td>
+          `;
+          printersBody.appendChild(row);
+        }
+      } catch (err) {
+        printersStatus.textContent = `Error: ${err}`;
+      }
+    }
+
+    document.getElementById("refresh-printers").addEventListener("click", loadConnectedPrinters);
+    loadConnectedPrinters();
+
     document.getElementById("test-print").addEventListener("click", async () => {
       const result = document.getElementById("result");
       const button = document.getElementById("test-print");
