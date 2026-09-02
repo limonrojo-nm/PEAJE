@@ -47,7 +47,8 @@ Hay que resolver la arquitectura de infraestructura del sistema (Nico asiste en 
 - [ ] Resolver el protocolo de comunicación entre el servidor Python y Redis para el envío de trabajos a la cola de impresión.
 - [ ] Decidir entre RQ o listas de Redis directas para gestionar la cola.
 - [ ] Confirmar el mapa de comandos ESC/POS específico de la Aclas PP7 (manual del fabricante) para el diseño del ticket impreso.
-- [ ] Raspi: prueba de concepto de impresión (nota suelta pendiente de desarrollo).
+- [x] Raspi: prueba de concepto de impresión — hecha en `raspinico` (Pi 4), impresora Aclas PP7 por USB, backend `usb` de python-escpos.
+- [ ] Convertir `peaje-core` en servicio systemd en la Raspi (hoy corre como proceso `nohup` suelto en `raspinico`, sin arranque automático ni supervisión) — decisión deliberada de dejarlo pendiente por ahora.
 
 ## Apéndice: registro de la conversación (contexto de decisiones)
 
