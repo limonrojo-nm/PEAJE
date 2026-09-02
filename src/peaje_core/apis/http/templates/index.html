@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Peaje — Panel de pruebas</title>
+</head>
+<body>
+  <h1>Peaje</h1>
+  <button id="test-print">Prueba de impresión</button>
+  <p id="result"></p>
+  <script>
+    document.getElementById("test-print").addEventListener("click", async () => {
+      const result = document.getElementById("result");
+      const button = document.getElementById("test-print");
+      button.disabled = true;
+      result.textContent = "Imprimiendo...";
+      try {
+        const response = await fetch("/printer/test-print", { method: "POST" });
+        const data = await response.json();
+        result.textContent = response.ok ? "Ticket enviado." : `Error: ${data.detail}`;
+      } catch (err) {
+        result.textContent = `Error: ${err}`;
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

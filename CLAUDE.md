@@ -2,9 +2,57 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Estado del repositorio
+## Comandos
 
-Este directorio todavía no contiene código: por ahora solo existe `PEAJE.md`, un resumen de decisiones de arquitectura para el proyecto "Peaje" (importado desde Notion). No hay build, lint, tests ni comandos de ejecución que documentar porque no hay implementación aún. Cuando se agregue código a este repo, esta sección debe actualizarse con los comandos reales.
+Entorno: pyenv-virtualenv `peaje-core` (Python 3.12), fijado en `.python-version`. Instalar/reinstalar dependencias tras tocar `pyproject.toml`:
+
+```bash
+pip install -e ".[dev]"
+```
+
+Levantar el servidor de desarrollo (con recarga automática):
+
+```bash
+uvicorn peaje_core.main:app --reload --port 8000
+```
+
+Ejecutar un comando de la capa CLI (equivalente en terminal a una acción HTTP, misma lógica de negocio):
+
+```bash
+peaje-core printer test
+```
+
+Sin impresora física ni simulador `escpresso` corriendo, usar el backend `dummy` (no falla, descarta el output):
+
+```bash
+PEAJE_PRINTER_BACKEND=dummy peaje-core printer test
+```
+
+No hay lint ni test suite configurados todavía.
+
+## Arquitectura de peaje-core (capas, inspirado en el Django Styleguide de HackSoft)
+
+La lógica de negocio vive en `services/` y es agnóstica a cómo se la invoca. Cada forma de invocarla (HTTP, CLI, y en el futuro un worker de la cola Redis) es una capa de API delgada bajo `apis/` que solo traduce su formato de entrada/salida y llama al servicio — nunca contiene lógica propia:
+
+```
+src/peaje_core/
+  config.py            # Settings (pydantic-settings, prefijo de env PEAJE_)
+  main.py              # ensambla la app FastAPI, incluye los routers de apis/http
+  services/            # lógica de negocio, sin saber de HTTP/CLI
+    printer.py          # run_print_test()
+  printers/             # capa de infraestructura: adapta config.Settings al
+    client.py            # backend real de python-escpos (network/usb/serial/dummy)
+  apis/
+    http/                # routers de FastAPI (solo request/response)
+      printer.py          # POST /printer/test-print
+      pages.py            # GET / — vista HTML con el botón de prueba
+      templates/index.html
+    cli/                  # comandos de terminal (Typer), mismo patrón
+      main.py              # entry point `peaje-core` (ver pyproject.toml [project.scripts])
+      printer.py           # `peaje-core printer test`
+```
+
+Al agregar una funcionalidad nueva: la lógica va en `services/`, y cada forma de dispararla (HTTP, CLI, futura tarea RQ) es un archivo delgado en el `apis/<tipo>/` correspondiente que la invoca. Si el negocio necesita hablarle a la impresora, pasa por `printers/client.get_printer()` — nunca instanciar `python-escpos` directamente fuera de esa capa, así el backend (red/USB/serie/dummy) se controla solo por `config.Settings`.
 
 ## Qué es el proyecto
 
