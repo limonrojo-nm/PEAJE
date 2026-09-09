@@ -39,12 +39,13 @@ src/peaje_core/
   config.py            # Settings (pydantic-settings, prefijo de env PEAJE_)
   main.py              # ensambla la app FastAPI, incluye los routers de apis/http
   services/            # lógica de negocio, sin saber de HTTP/CLI
-    printer.py          # run_print_test()
+    printer.py          # run_print_test(), print_drawing()
   printers/             # capa de infraestructura: adapta config.Settings al
     client.py            # backend real de python-escpos (network/usb/serial/dummy)
+    imaging.py           # reescalado al ancho del cabezal (python-escpos no reescala)
   apis/
     http/                # routers de FastAPI (solo request/response)
-      printer.py          # POST /printer/test-print
+      printer.py          # POST /printer/test-print, POST /printer/drawing
       pages.py            # GET / — vista HTML con el botón de prueba
       templates/index.html
     cli/                  # comandos de terminal (Typer), mismo patrón
@@ -53,6 +54,18 @@ src/peaje_core/
 ```
 
 Al agregar una funcionalidad nueva: la lógica va en `services/`, y cada forma de dispararla (HTTP, CLI, futura tarea RQ) es un archivo delgado en el `apis/<tipo>/` correspondiente que la invoca. Si el negocio necesita hablarle a la impresora, pasa por `printers/client.get_printer()` — nunca instanciar `python-escpos` directamente fuera de esa capa, así el backend (red/USB/serie/dummy) se controla solo por `config.Settings`.
+
+## Contrato con la app (no romper sin avisar)
+
+La app de la instalación manda el dibujo del visitante a `POST /printer/drawing`
+(multipart, campo `drawing`, un PNG). Detalle en el README. Importa saberlo
+porque **la app no le muestra ningún error al visitante si la impresión falla**:
+si se renombra la ruta o el campo, la obra deja de imprimir en silencio y nadie
+se entera hasta recorrerla entera.
+
+Hay una sola impresora y un solo cable: `services/printer.py` serializa el
+acceso con un lock. Alcanza mientras haya un proceso solo — es el punto donde
+entra la cola de Redis cuando haga falta.
 
 ## Qué es el proyecto
 
