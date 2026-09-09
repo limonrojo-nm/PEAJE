@@ -40,6 +40,8 @@ Configurable por variables de entorno con prefijo `PEAJE_` (ver
 | `PEAJE_PRINTER_USB_OUT_EP` | `0x03` | Backend `usb`: endpoint bulk OUT (default calibrado para la Aclas PP7) |
 | `PEAJE_PRINTER_SERIAL_DEVFILE` | `/dev/serial0` | Backend `serial` |
 | `PEAJE_PRINTER_SERIAL_BAUDRATE` | `19200` | Backend `serial` |
+| `PEAJE_PRINTER_DOTS_WIDTH` | `384` | Ancho del cabezal en puntos (58 mm ≈ 384, 80 mm ≈ 576). El dibujo se reescala a esta medida |
+| `PEAJE_ALLOWED_ORIGINS` | — | Orígenes que pueden mandar un dibujo (CORS), separados por coma. Ej: `https://usuario.github.io` |
 
 Sin impresora física ni simulador corriendo, usar `dummy` (descarta el output,
 no falla):
@@ -68,6 +70,36 @@ host/puerto — no hace falta configurar nada extra.
 | `GET` | `/` | Panel de pruebas HTML: listado de impresoras USB conectadas y botón para disparar una impresión de prueba |
 | `GET` | `/printer/connected` | Impresoras USB detectadas en el host (vendor/product ID) — `503` si no hay backend USB nativo (`libusb`) disponible |
 | `POST` | `/printer/test-print` | Envía un ticket de prueba a la impresora configurada — `502` si falla la comunicación |
+| `POST` | `/printer/drawing` | Recibe el dibujo de un visitante y lo imprime como ticket — ver *Contrato con la app* |
+
+## Contrato con la app
+
+La instalación **El Peaje** (repo `am3-el-peaje-v2`, React) es hoy el único
+consumidor de `peaje-core`. Al llegar al final del recorrido, el teléfono del
+visitante manda su dibujo:
+
+| | |
+|---|---|
+| Método y ruta | `POST /printer/drawing` |
+| Cuerpo | `multipart/form-data` |
+| Campos | **`drawing`**: un PNG (canvas de celular, ~1000 px, fondo blanco opaco). **`header`** y **`footer`**: el texto del ticket, hasta 500 caracteres cada uno. El encabezado se imprime en fuente A (32 caracteres por renglón a 58 mm) y el pie en fuente B (42) |
+| Respuesta | `200` si la impresora aceptó el trabajo; `400` si no es una imagen, `413` si excede 5 MB, `502` si falló la impresión |
+
+**Renombrar la ruta o el campo deja la obra muda**: la app no le avisa nada al
+visitante si la impresión falla —es una decisión de la obra, para no mandarlo a
+esperar frente a una impresora vacía—, así que una ruptura de contrato no se
+nota hasta que alguien recorre la pieza entera. Avisar antes de cambiarlo.
+
+La app se sirve por HTTPS desde GitHub Pages (lo exigen la cámara y el
+micrófono de su última sección) y `peaje-core` desde un túnel, así que son
+orígenes distintos: sin `PEAJE_ALLOWED_ORIGINS` el navegador bloquea el envío.
+
+**El texto del ticket lo manda la app, no lo decide `peaje-core`.** La voz de la
+obra vive en el repo de la obra; la estación imprime lo que le dan y no sabe qué
+dice el comprobante. Por eso `header`/`footer` son parámetros y no configuración.
+
+Nada de lo que llega es dato del visitante: el dibujo es anónimo y los textos son
+fijos, iguales en cada ticket.
 
 ## Comandos de terminal (CLI)
 
@@ -75,6 +107,14 @@ Misma lógica de negocio que las rutas HTTP, vía la capa `apis/cli`:
 
 ```bash
 peaje-core printer test   # equivalente a POST /printer/test-print
+
+El ticket de prueba incluye una línea con acentos y eñes a propósito. El texto
+del ticket real los lleva, y `python-escpos` los resuelve cambiando de página de
+códigos por su cuenta (emite `ESC t`). Si la PP7 numera sus páginas distinto,
+esa línea sale con glifos equivocados y el resto bien — **conviene que sea lo
+primero que se imprima en la impresora física**, porque es la única forma de
+saberlo. Si falla, se arregla fijando el perfil de la impresora o sacándole las
+tildes al texto del ticket.
 ```
 
 ## Arquitectura

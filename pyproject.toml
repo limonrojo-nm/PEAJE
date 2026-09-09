@@ -10,6 +10,7 @@ dependencies = [
     "python-escpos[usb]>=3.1",
     "typer>=0.15",
     "jinja2>=3.1",
+    "python-multipart>=0.0.9",  # requerido por FastAPI para recibir el dibujo
     "pydantic-settings>=2.6",
 ]
 

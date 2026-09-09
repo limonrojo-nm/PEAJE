@@ -26,9 +26,25 @@ class Settings(BaseSettings):
     printer_usb_in_ep: int = 0x81
     printer_usb_out_ep: int = 0x03
 
+    # Ancho del cabezal en puntos. 58 mm ≈ 384, 80 mm ≈ 576. Confirmar contra
+    # el manual de la Aclas PP7: el dibujo se reescala a esta medida y si no
+    # coincide, sale cortado o angosto.
+    printer_dots_width: int = 384
+
+    # Orígenes que pueden mandar un dibujo (CORS). La app se sirve desde
+    # GitHub Pages y peaje-core desde un túnel HTTPS, así que son orígenes
+    # distintos. Coma como separador:
+    #   PEAJE_ALLOWED_ORIGINS=https://usuario.github.io
+    allowed_origins: str = ""
+
     # backend "serial": conexión serie directa.
     printer_serial_devfile: str = "/dev/serial0"
     printer_serial_baudrate: int = 19200
+
+
+    @property
+    def allowed_origins_list(self) -> list[str]:
+        return [o.strip() for o in self.allowed_origins.split(",") if o.strip()]
 
 
 @lru_cache
