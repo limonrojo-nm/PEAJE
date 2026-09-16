@@ -63,6 +63,32 @@ escpresso   # abre una ventana con vista previa y escucha en 127.0.0.1:9100
 Con `escpresso` corriendo, el backend `network` (default) ya apunta a ese
 host/puerto — no hace falta configurar nada extra.
 
+## En la Raspberry: correr como servicio
+
+En sala, `peaje-core` no se lanza a mano: es un servicio de systemd que
+arranca solo al encender la Raspberry y se vuelve a levantar si se cae. La
+configuración vive en un `.env` en la carpeta del repo (pydantic-settings lo
+lee también al correr a mano, así los dos caminos usan los mismos valores).
+
+```bash
+cp .env.example .env          # y ajustar: IDs USB, ancho del papel, origen de la app
+./deploy/instalar-servicio.sh # una vez; se puede repetir, reinstala y reinicia
+```
+
+El script rellena `deploy/peaje-core.service` con el usuario, la carpeta y el
+Python del entorno instalado, y lo activa. Después:
+
+```bash
+systemctl status peaje-core          # ¿está corriendo?
+journalctl -u peaje-core -f          # el log en vivo (cada dibujo que llega)
+sudo systemctl restart peaje-core    # tras un git pull o un cambio en .env
+```
+
+El servicio escucha sólo en `127.0.0.1:8000`; hacia internet lo publica
+Tailscale Funnel (`tailscale funnel --bg 8000`), que también persiste al
+reiniciar. Si tras un reinicio la estación no responde desde afuera, mirar
+primero `tailscale status`.
+
 ## Rutas disponibles
 
 | Método | Ruta | Descripción |

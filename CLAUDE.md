@@ -35,8 +35,9 @@ No hay lint ni test suite configurados todavía.
 La lógica de negocio vive en `services/` y es agnóstica a cómo se la invoca. Cada forma de invocarla (HTTP, CLI, y en el futuro un worker de la cola Redis) es una capa de API delgada bajo `apis/` que solo traduce su formato de entrada/salida y llama al servicio — nunca contiene lógica propia:
 
 ```
+deploy/                # servicio de systemd para la Raspberry + script que lo instala
 src/peaje_core/
-  config.py            # Settings (pydantic-settings, prefijo de env PEAJE_)
+  config.py            # Settings (pydantic-settings, prefijo de env PEAJE_; lee .env)
   main.py              # ensambla la app FastAPI, incluye los routers de apis/http
   services/            # lógica de negocio, sin saber de HTTP/CLI
     printer.py          # run_print_test(), print_drawing()

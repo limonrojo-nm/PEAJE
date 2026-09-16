@@ -1,0 +1,23 @@
+# Servicio de systemd para peaje-core en la Raspberry de sala.
+#
+# No se copia a mano: deploy/instalar-servicio.sh rellena los {{...}} con el
+# usuario, la carpeta del repo y la ruta del Python del entorno instalado, y
+# lo deja en /etc/systemd/system/. La configuración de la impresora vive en
+# el .env de la carpeta del repo (ver .env.example).
+
+[Unit]
+Description=peaje-core — estación de impresión de El Peaje
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User={{USER}}
+WorkingDirectory={{DIR}}
+EnvironmentFile={{DIR}}/.env
+# Sólo escucha en la propia Raspberry: hacia afuera lo publica Tailscale Funnel.
+ExecStart={{PYTHON}} -m uvicorn peaje_core.main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

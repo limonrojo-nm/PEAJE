@@ -48,7 +48,7 @@ Hay que resolver la arquitectura de infraestructura del sistema (Nico asiste en 
 - [ ] Decidir entre RQ o listas de Redis directas para gestionar la cola.
 - [ ] Confirmar el mapa de comandos ESC/POS específico de la Aclas PP7 (manual del fabricante) para el diseño del ticket impreso.
 - [x] Raspi: prueba de concepto de impresión — hecha en `raspinico` (Pi 4), impresora Aclas PP7 por USB, backend `usb` de python-escpos.
-- [ ] Convertir `peaje-core` en servicio systemd en la Raspi (hoy corre como proceso `nohup` suelto en `raspinico`, sin arranque automático ni supervisión) — decisión deliberada de dejarlo pendiente por ahora.
+- [x] Convertir `peaje-core` en servicio systemd en la Raspi — hecho: `deploy/peaje-core.service` + `deploy/instalar-servicio.sh` (ver README, "En la Raspberry: correr como servicio").
 
 ## Apéndice: registro de la conversación (contexto de decisiones)
 
