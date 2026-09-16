@@ -41,6 +41,7 @@ Configurable por variables de entorno con prefijo `PEAJE_` (ver
 | `PEAJE_PRINTER_SERIAL_DEVFILE` | `/dev/serial0` | Backend `serial` |
 | `PEAJE_PRINTER_SERIAL_BAUDRATE` | `19200` | Backend `serial` |
 | `PEAJE_PRINTER_DOTS_WIDTH` | `384` | Ancho del cabezal en puntos (58 mm ≈ 384, 80 mm ≈ 576). El dibujo se reescala a esta medida |
+| `PEAJE_PRINTER_IMAGE_IMPL` | `bitImageColumn` | Comando ESC/POS para mandar el dibujo: `bitImageColumn` (`ESC *`) \| `bitImageRaster` (`GS v 0`) \| `graphics` (`GS ( L`). La Aclas PP7 no entiende `GS v 0`: imprime basura y se apaga. Probar con `peaje-core printer image-test` |
 | `PEAJE_ALLOWED_ORIGINS` | — | Orígenes que pueden mandar un dibujo (CORS), separados por coma. Ej: `https://usuario.github.io` |
 
 Sin impresora física ni simulador corriendo, usar `dummy` (descarta el output,
@@ -106,7 +107,9 @@ fijos, iguales en cada ticket.
 Misma lógica de negocio que las rutas HTTP, vía la capa `apis/cli`:
 
 ```bash
-peaje-core printer test   # equivalente a POST /printer/test-print
+peaje-core printer test                       # equivalente a POST /printer/test-print
+peaje-core printer image-test                 # figura de prueba con el modo de imagen configurado
+peaje-core printer image-test --impl graphics # ...o con otro, para ver cuál entiende la impresora
 
 El ticket de prueba incluye una línea con acentos y eñes a propósito. El texto
 del ticket real los lleva, y `python-escpos` los resuelve cambiando de página de

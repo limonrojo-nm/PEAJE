@@ -31,6 +31,17 @@ class Settings(BaseSettings):
     # coincide, sale cortado o angosto.
     printer_dots_width: int = 384
 
+    # Comando ESC/POS con el que se manda el dibujo. python-escpos ofrece tres:
+    #   bitImageColumn  ESC *      el más viejo; lo entienden hasta las básicas
+    #   bitImageRaster  GS v 0     el habitual en Epson y clones
+    #   graphics        GS ( L     el moderno
+    # La Aclas PP7 rechaza GS v 0 —imprime "(1B 80) This command is not
+    # supported" y se apaga a mitad del dibujo—, así que el default es columna.
+    # Para probar un modo contra la impresora: `peaje-core printer image-test`.
+    printer_image_impl: Literal["bitImageColumn", "bitImageRaster", "graphics"] = (
+        "bitImageColumn"
+    )
+
     # Orígenes que pueden mandar un dibujo (CORS). La app se sirve desde
     # GitHub Pages y peaje-core desde un túnel HTTPS, así que son orígenes
     # distintos. Coma como separador:

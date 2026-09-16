@@ -7,7 +7,7 @@ apis/cli, o una futura tarea de cola) llama a estas funciones.
 import threading
 from datetime import datetime
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from peaje_core.config import get_settings
 from peaje_core.printers.client import get_printer
@@ -49,6 +49,49 @@ def run_print_test() -> None:
         printer.close()
 
 
+def run_image_test(impl: str | None = None) -> str:
+    """Imprime una imagen de prueba con el modo de imagen configurado (o el
+    que se pase), y devuelve el modo usado.
+
+    Existe porque no todas las térmicas entienden los tres comandos de imagen
+    de ESC/POS, y la única forma de saber cuál acepta una impresora es
+    mandarle uno y mirar el papel. Si sale la figura, ese modo sirve; si sale
+    basura o un aviso de "command not supported", probar otro.
+    """
+    settings = get_settings()
+    impl = impl or settings.printer_image_impl
+
+    with _printer_lock:
+        printer = get_printer()
+        try:
+            printer.set(align="center")
+            printer.text(f"modo de imagen: {impl}\n")
+            printer.image(_test_pattern(settings.printer_dots_width), impl=impl)
+            printer.text("\n")
+            printer.cut()
+        finally:
+            printer.set(align="left")
+            printer.close()
+    return impl
+
+
+def _test_pattern(dots: int) -> Image.Image:
+    """Figura al ancho del cabezal: marco, diagonales y un círculo.
+
+    Es fácil de reconocer en el papel y usa todo el ancho, así también se ve
+    si `printer_dots_width` está bien (marco cortado = ancho de más).
+    """
+    height = dots // 2
+    image = Image.new("L", (dots, height), 255)
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((0, 0, dots - 1, height - 1), outline=0, width=3)
+    draw.line((0, 0, dots - 1, height - 1), fill=0, width=3)
+    draw.line((0, height - 1, dots - 1, 0), fill=0, width=3)
+    r = height // 3
+    draw.ellipse((dots // 2 - r, height // 2 - r, dots // 2 + r, height // 2 + r), outline=0, width=3)
+    return image
+
+
 def print_drawing(
     image: Image.Image,
     header: str = "",
@@ -71,7 +114,7 @@ def print_drawing(
                 printer.set(align="center", bold=False)
                 printer.text("\n")
 
-            printer.image(prepared)
+            printer.image(prepared, impl=get_settings().printer_image_impl)
 
             if footer:
                 # Fuente B: la letra chica del comprobante. A 58 mm entran 42
